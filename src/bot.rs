@@ -31,7 +31,7 @@ impl serenity::prelude::TypeMapKey for DbPoolKey {
 }
 
 #[group]
-#[commands(ping, give, force_give, balances, motion, supermotion, vote, hack_message_update)]
+#[commands(ping, give, force_give, balances, motion, supermotion, vote, hack_message_update, help, version_info)]
 struct General;
 
 #[group]
@@ -359,11 +359,11 @@ pub fn bot_main() {
                     let pc_balance = balance("pc");
                     diesel::insert_into(tdsl::transfers).values((
                         tdsl::ty.eq("pc"),
-                        tdsl::from_gen.eq(true),
                         tdsl::quantity.eq(gen_balance),
                         tdsl::to_user.eq(userid),
                         tdsl::to_balance.eq(pc_balance + gen_balance),
                         tdsl::happened_at.eq(now),
+                        tdsl::transfer_ty.eq("generated"),
                     )).execute(&*conn).unwrap();
                 }
 
@@ -514,7 +514,8 @@ fn fabricate(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
             tdsl::to_balance.eq(prev_balance + how_many),
             tdsl::happened_at.eq(chrono::Utc::now()),
             tdsl::message_id.eq(msg.id.0 as i64),
-            tdsl::ty.eq(ty.db_name())
+            tdsl::ty.eq(ty.db_name()),
+            tdsl::transfer_ty.eq("command_fabricate"),
         )).execute(&*conn)?;
 
         Ok(())
@@ -522,6 +523,26 @@ fn fabricate(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult 
 
     msg.reply(&ctx, "Fabricated.")?;
 
+    Ok(())
+}
+
+#[command]
+#[aliases("?","h")]
+fn help(ctx: &mut Context, msg: &Message) -> CommandResult {
+    msg.reply(&ctx, "For help see https://github.com/consortium-chat/plutocradroid/blob/master/README.md#commands")?;
+    Ok(())
+}
+
+#[command]
+#[aliases("v","info","version")]
+fn version_info(ctx: &mut Context, msg: &Message) -> CommandResult {
+    msg.reply(&ctx, format!(
+        "Plutocradroid {} commit {} built for {} at {}.\nhttps://github.com/consortium-chat/plutocradroid",
+        env!("VERGEN_SEMVER_LIGHTWEIGHT"),
+        env!("VERGEN_SHA_SHORT"),
+        env!("VERGEN_TARGET_TRIPLE"),
+        env!("VERGEN_BUILD_TIMESTAMP"),
+    ))?;
     Ok(())
 }
 
@@ -708,6 +729,7 @@ fn give_common(ctx:&mut Context, msg:&Message, mut args:Args, check_user:bool) -
                 happened_at:chrono::DateTime<chrono::Utc>,
                 message_id:i64,
                 ty:String,
+                transfer_ty:&'static str,
             }
 
             let from_balance;
@@ -729,6 +751,7 @@ fn give_common(ctx:&mut Context, msg:&Message, mut args:Args, check_user:bool) -
                 happened_at: chrono::Utc::now(),
                 message_id: msg.id.0 as i64,
                 ty: ty.db_name().into(),
+                transfer_ty: "give",
             };
 
             diesel::insert_into(schema::transfers::table).values(&t).execute(&*conn)?;
@@ -797,8 +820,8 @@ fn transaction_history_csv(ctx:&mut Context, msg:&Message, _args:Args) -> Comman
     let mut wtr = csv::Writer::from_writer(vec![]);
     for tn in history {
         let other_party_id:Option<i64> = tn.other_party;
-        let mut other_party:String = other_party_id.map(|id| id.to_string()).unwrap_or(String::new());
-        other_party.push_str(":");
+        let mut other_party:String = other_party_id.map(|id| id.to_string()).unwrap_or_default();
+        other_party.push(':');
         let other_party_tag = other_party_id.map(|id| ctx.cache.read().users.get(&UserId::from(id as u64)).map(|a| a.read().tag())).flatten();
         if let Some(s) = other_party_tag {
             other_party.push_str(&s);
@@ -809,7 +832,7 @@ fn transaction_history_csv(ctx:&mut Context, msg:&Message, _args:Args) -> Comman
             other_party,
             amount: (tn.quantity * (tn.sign as i64)).to_string(),
             balance_after: tn.balance.to_string(),
-            comment: tn.comment.unwrap_or(String::new()),
+            comment: tn.comment.unwrap_or_default(),
         };
         wtr.serialize(csv_thing).unwrap();
     }
@@ -900,6 +923,9 @@ fn motion_common(ctx:&mut Context, msg:&Message, args:Args, is_super: bool) -> C
             tdsl::quantity.eq(VOTE_BASE_COST as i64),
             tdsl::happened_at.eq(chrono::Utc::now()),
             tdsl::message_id.eq(msg.id.0 as i64),
+            tdsl::to_motion.eq(motion_id),
+            tdsl::to_votes.eq(1),
+            tdsl::transfer_ty.eq("motion_create"),
         )).execute(&*conn)?;
 
         Ok(())
@@ -1191,6 +1217,7 @@ pub fn vote_common(
                     tdsl::message_id.eq(command_message_id),
                     tdsl::to_motion.eq(motion_id),
                     tdsl::to_votes.eq(vote_count),
+                    tdsl::transfer_ty.eq("motion_vote"),
                 )).execute(&*conn)?;
                 //dbg!();
 

@@ -1421,7 +1421,7 @@ dependencies = [
 
 [[package]]
 name = "plutocradroid"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "atoi",
  "base64 0.13.0",
@@ -1432,7 +1432,7 @@ dependencies = [
  "dotenv",
  "env_logger",
  "hex",
- "iron",
+ "hyper 0.10.16",
  "lazy_static",
  "log 0.4.11",
  "maplit",
