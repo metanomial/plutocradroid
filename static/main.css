@@ -1,33 +1,124 @@
-/* adapted from https://jrl.ninja/etc/1/ */
 html {
-    max-width:70ch;
-    padding:2ch;
-    margin:auto;
-    color:#333;
-    font-size:1.2em;
+    --text-color: #333;
+    --background-color: white;
+    --button-color: #e6e0ea;
+    --anchor-color: #8824c3;
+    --card-color: #efe1f7;
+    --card-shadow-color: #e0d2e8;
+    --pre-field-color: #dac8e4;
+    --filters-background-color: #b8aac0;
+    --greater-border-radius: 1.4rem;
+    --lesser-border-radius: 0.4rem;
+    --container-padding: 1.2rem;
+}
+
+body {
+    max-width: 41rem;
+    padding: 1rem;
+    margin: 0 auto;
+    color: var(--text-color);
+    word-wrap: break-word;
+    font-family: sans-serif;
+    background-color: var(--background-color);
+}
+
+button, input[type=button], input[type=submit] {
+    padding: 0.4rem 0.6rem;
+    color: inherit;
+    font-family: inherit;
+    border: none;
+    background-color: var(--button-color);
+}
+
+a {
+    color: var(--anchor-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#filters {
+    padding: var(--container-padding);
+    background-color: var(--filters-background-color);
+    font-weight: 700;
+}
+
+#filters ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+.motion {
+    padding: var(--container-padding);
+    margin: 1.8rem 0;
+    border-radius: var(--lesser-border-radius);
+    border-top-left-radius: var(--greater-border-radius);
+    border-bottom-right-radius: var(--greater-border-radius);
+    background-color: var(--card-color);
+    box-shadow: 0.4rem 0.4rem 0 var(--card-shadow-color);
+}
+
+.motion-text {
+	padding: 1rem;
+    font-family: monospace;
+	white-space: pre-line;
+    background-color: var(--pre-field-color);
+}
+
+.motion-titlebar {
+    font-family: serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.motion-titlebar > a {
+    flex-grow: 1;
+}
+
+.motion-title {
+    margin: 0;
+    white-space: nowrap;
 }
 
 .winner {
     font-weight: bolder;
     font-size: 120%;
-}
-
-.motion-time {
-    align-self: flex-end;
-    margin-left: 1em;
-}
-
-.motion-title {
-    margin-bottom: 0;
-}
-
-.motion-titlebar {
-    display: flex;
-    margin-top: 3em;
+    line-height: 1rem;
 }
 
 .build-info {
     color: #ccc;
     margin-top: 30px;
     display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+    html {
+        --text-color: white;
+        --background-color: #44364d;
+        --button-color: #e6e0ea;
+        --anchor-color: #efd6ff;
+        --card-color: #996fb2;
+        --card-shadow-color: #231f26;
+        --pre-field-color: #7b598f;
+        --filters-background-color: #2d2134;
+    }
+}
+
+@media (min-width: 600px) {
+    body {
+        padding: 2rem;
+        font-size: 1.2em;
+    }
+
+    .motion-titlebar {
+        flex-direction: row;
+    }
+
+    .motion-time {
+        align-self: flex-end;
+        margin-left: 1rem;
+    }
 }

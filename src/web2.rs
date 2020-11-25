@@ -274,7 +274,7 @@ fn motion_snippet(
                 }
             }
         }
-        p {
+        p.motion-text {
             @if motion.is_super {
                 "Super motion "
             } @else {
@@ -341,13 +341,12 @@ fn page(ctx: &mut CommonContext, title: impl AsRef<str>, content: Markup) -> Mar
         } @else {
             form action="/login/discord" method="post" {
                 input type="hidden" name="csrf" value=(ctx.csrf_token);
-                p { 
+                p {
                     "I don't know who you are. You should "
                     input type="submit" name="submit" value="Login";
                 }
             }
         }
-        hr;
         (content)
     })
 }
@@ -358,6 +357,8 @@ fn bare_page(title: impl AsRef<str>, content: Markup) -> Markup {
         html {
             head {
                 title { (title.as_ref()) }
+                meta charset="utf-8";
+                meta name="viewport" content="width = device-width, initial-scale = 1";
                 link rel="stylesheet" href={"/" (static_path!(main.css))};
                 link rel="icon" type="image/png" href={"/" (static_path!(favicon.png))};
             }
@@ -414,7 +415,7 @@ fn motion_vote(
         return Err(rocket::http::Status::BadRequest);
     }
     let resp = crate::bot::vote_common(
-        &ctx.conn, 
+        &ctx.conn,
         Some(vote_direction),
         vote_count,
         deets.discord_user.id(),
@@ -452,7 +453,7 @@ fn motion_listing(mut ctx: CommonContext, damm_id: String) -> impl Responder<'st
         mdsl::is_super,
         mdsl::announcement_message_id,
     )).filter(mdsl::rowid.eq(id)).get_result(&*ctx).optional().unwrap();
-    
+
     let motion;
     if let Some(m) = maybe_motion {
         motion = m;
@@ -580,7 +581,7 @@ fn index(mut ctx: CommonContext, filter: MotionListFilter) -> impl Responder<'st
     }:Vec<_>;
 
     page(&mut ctx, "All Motions", html!{
-        form method="get" {
+        form#filters method="get" {
             div {
                 "Filters:"
                 ul {
@@ -724,7 +725,7 @@ fn motions_api_compat(
         let no_votes = get_vote_count(m.rowid, false)?;
         Ok(MotionWithCount::from_motion(m, yes_votes as u64, no_votes as u64))
     }).collect():Result<Vec<_>,diesel::result::Error>).unwrap();
-    
+
     Content(ContentType::JSON, serde_json::to_string(&res).unwrap())
 }
 

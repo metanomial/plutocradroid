@@ -1,0 +1,14 @@
+{
+    "name": "CONSortium Motions Viewer",
+    "short_name": "Motions",
+    "description": "Web viewer for motions made through Plutocradroid.",
+    "display": "standalone",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "icon48.png",
+            "sizes": "48x48",
+            "type": "image/png"
+        }
+    ]
+}
